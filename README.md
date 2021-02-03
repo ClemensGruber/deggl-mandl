@@ -1,2 +1,2 @@
-# DeggiMandl
-DeggiMandl ist ein halbautomatischer (Honig-)Glas-Zuschraub-Roboter. 
+# DegglMandl
+DegglMandl ist ein halbautomatischer (Honig-)Glas-Zuschraub-Roboter. 
