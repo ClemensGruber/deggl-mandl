@@ -10,7 +10,7 @@ https://www.obi.de/bohrstaender/bohrstaender/p/8035487
 - ggf. **Gummifüße**, um den Bohrstander rutschfest auf den Tisch zu stellen, Alternative: an Arbeitsplatte festschrauben
   - 4x Gummifüße aka Gummianschlagpuffer mit Innengewinde M6 und 
   - passende M6er Maschinenschrauben, Senkkopf
-- **Flansch**, z.B. SHF8, Rod Shaft Support, 8 mm, linear,  https://www.ebay.de/itm/1pcs-SHF8-8-mm-linear-Rod-Shaft-Support-Flansch-Mount-linear-Rail-Shaft-Unterst%C3%BC/232389962687
+- **Stehflansch**, z.B. SHF8, Rod Shaft Support, 8 mm, linear,  https://www.ebay.de/itm/1pcs-SHF8-8-mm-linear-Rod-Shaft-Support-Flansch-Mount-linear-Rail-Shaft-Unterst%C3%BC/232389962687
 - **Siebdruckplatte**, 18 mm, ca. 90 mm Durchmesser (z.B. mit Lochsäge aussägen)
 - **Gummimatte** rund, ca. 90 mm Durchmesser (dickeres Material kann auch gut mit der Lochsäge bearbeitet werden)
 
