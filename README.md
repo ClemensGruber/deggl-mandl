@@ -17,7 +17,7 @@ https://www.obi.de/bohrstaender/bohrstaender/p/8035487
 ### Elektronik
 - **Getriebe-Motor, 24 V**, z.B. Chihai CHP-42GP-BL4260, 42 mm, DC 24V, Getriebe 1:92
 - **Arduino Nano**, die "alten" / classic **5 V**-Nanos, **nicht** die neuen "Nano 33"-Boards (3,3 V)
-- **OLED-Display** mit I2C-Schnittstelle, 0.96" oder 1.3" 
+- **OLED-Display** mit I2C-Schnittstelle, 0.96" oder 1.3", die Platine untersützt Displays sowohl mit Vcc-GND-SCL-SDA Anschlüssen, und auch Pin-Reihenfolge  GND-Vcc-SCL-SDA 
 - **Rotary Encoder** 
 -- KY-040, etwas https://www.amazon.de/WayinTop-Encoder-Drehgeber-Drehwinkelgeber-Druckknopf/dp/B07T3672VK/
 -- oder diesen etwas kompakteren: https://www.ebay.de/itm/2-5-10PCS-NEW-Rotary-Encoder-Sensor-Development-Module-Brick-Board-Potentiometer/193633079359
