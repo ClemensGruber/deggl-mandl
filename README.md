@@ -29,4 +29,8 @@ https://www.obi.de/bohrstaender/bohrstaender/p/8035487
   - Kunststoffgehäuse RND 455-00240, 115 x 90 x 55 mm, IP65, z.B. bei Reichelt (ausverkauft?) 
   - oder Electronic Project Box, Plastic, Clear Cover, Waterproof 115 * 90 * 55 mm, https://www.ebay.de/itm/Waterproof-115-90-55MM-Clear-Cover-Plastic-Electronic-Project-Box-Enclosure-s4/283974305486
   
-   
+
+## Platine 
+
+<img src="./pictures-pcb/deggl-mand_platine-v1.0_schaltplan.png" width="900">
+<img src="./pictures-pcb/deggl-mand_platine-v1.0_vorne.png" width="400"><img src="./pictures-pcb/deggl-mand_platine-v1.0_hinten.png" width="400">
