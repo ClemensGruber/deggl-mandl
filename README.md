@@ -3,7 +3,7 @@ Alles *work in progress* ;-) und momentan 2021/02 gefühlt beta-Status!
 # DegglMandl
 DegglMandl ist ein halbautomatischer (Honig-)Glas-Zuschraub-Roboter. 
 
-<img src="./deggl-mandl.jpg" width="500">
+<img src="./pictures-doc/deggl-mandl.jpg" width="500">
 
 ## Teileliste
 ### Mechanik
