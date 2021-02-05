@@ -57,5 +57,5 @@ https://www.obi.de/bohrstaender/bohrstaender/p/8035487
 
 <img src="./pictures-pcb/deggl-mandl_platine-v1.0_schaltplan.png" width="900">
 <img src="./pictures-pcb/deggl-mandl_platine-v1.0_platine.png" width="400">
-<img src="./pictures-pcb/deggl-mand._platine-v1.0_vorne.png" width="400">
+<img src="./pictures-pcb/deggl-mandl_platine-v1.0_vorne.png" width="400">
 <img src="./pictures-pcb/deggl-mandl_platine-v1.0_hinten.png" width="400">
