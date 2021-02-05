@@ -35,6 +35,23 @@ https://www.obi.de/bohrstaender/bohrstaender/p/8035487
   - Kunststoffgehäuse RND 455-00240, 115 x 90 x 55 mm, IP65, z.B. bei Reichelt (ausverkauft?) 
   - oder Electronic Project Box, Plastic, Clear Cover, Waterproof 115 * 90 * 55 mm, https://www.ebay.de/itm/Waterproof-115-90-55MM-Clear-Cover-Plastic-Electronic-Project-Box-Enclosure-s4/283974305486
   
+### für Platine
+
+- 2x **steckbare Schraubklemmen, RM 5,08, 2-polig, plus Gegenstück** <br>
+  für (a) Netzteil (Power) und (b) Endabschalter (Endswitch)
+- **steckbare Schraubklemme, RM 5,08, 5-polig, plus Gegenstück**, für Motor
+- **Stifteleisten, RM 2,54** (liegen bis auf Rotary meist den breakouts bei)
+-- 1x 4-polig, für OLED
+-- 1x 5-polig, für Rotary
+-- 1x 6-polig, für INA219
+- **Jumper-Kabel, 5-adrig**, für Rotary
+- optional **Buchsenleiste (15 polig oder abzwicken :-)** für weitere Sensoren / debugging
+- optional **Schraubklemme, RM 5,08, 3-polig** für con_temp, falls wir mit der Wärmeentwicklung des Motors einmal Probleme haben sollten könnte man hier einen DS18B20 anschließen, oder ihr messt damit ob euer Bier noch kalt / Kaffe noch warm ist, ;-) im code ist (Stand 2021/02) noch nichts dafür vorbereitet
+- optional **Widerstand 4,7 kOhm, SMD, Bauform 0805** für Biersensor (s.o.)
+- [dnp] 2x Widerstand R1 und R2 (4K7, 0805) werden **nicht benötigt**, da die pullups für den I2C-Bus schon auf der breakout-Platine des INA219 verbaut sind  
+
+**Hinweis:** Alle oben aufgeführten Konnektoren sind Empfehlungen, man kann statt Schraub- auch Federklemmen verwenden oder Kabel direkt anlöten. Bei Abwandlungen allerdings das Rastermaß (RM) beachten, damit alles zusammenpasst! 
+
 
 ## Platine 
 
