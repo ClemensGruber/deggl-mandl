@@ -29,6 +29,7 @@ https://www.obi.de/bohrstaender/bohrstaender/p/8035487
 - **Endabschalter** 
   - Micro Switch KW12-3 
   - oder größer mit Gehäuse: Nuluxi Endschalter, https://www.amazon.de/gp/product/B07X9381YB
+- **Netzteil**, 12 V, ca. 5 A
 - **Gehäuse**
   - Kunststoffgehäuse RND 455-00240, 115 x 90 x 55 mm, IP65, z.B. bei Reichelt (ausverkauft?) 
   - oder Electronic Project Box, Plastic, Clear Cover, Waterproof 115 * 90 * 55 mm, https://www.ebay.de/itm/Waterproof-115-90-55MM-Clear-Cover-Plastic-Electronic-Project-Box-Enclosure-s4/283974305486
