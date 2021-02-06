@@ -18,6 +18,7 @@
   2021-02-06 Marc Junker    | Version 0.1b
                                - unbounced StartSwitch
                                - Temperatursemsoren  
+                      
   
 
   Todo
@@ -29,7 +30,7 @@
   
 */
 
-const char versionTag[] = "ver 0.1br1";
+const char versionTag[] = "ver 0.1br2";
 
 // Größe des Oled Displays. Not defined = 0.96" / defined = 1.3"
 #define DISPLAY_BIG      
@@ -121,7 +122,7 @@ void loop() {
       u8x8.print("Closed ");
       u8x8.setCursor(1,7);
       u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
-      u8x8.print(round(currentAfterburner));
+      u8x8.print(max(current, currentAfterburner));
       u8x8.print("mA reached");
       u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
  
