@@ -15,8 +15,11 @@
                                 - variablen Nachlauf: afterburner in ms
                                 - Konfiguration für 0.96" und 1.3" OLED
   2021-02-05 Clemens Gruber | - kleinere Umformatierungen in den Kommentaren und weitere Kommentare 
+  2021-02-06 Marc Junker    | Version 0.1b
+                               - unbounced StartSwitch
+                               - Temperatursemsoren  
   
-  
+
   Todo
   ----
   - Rotary-Integration: Einstellung des Drehmomentes. 
@@ -36,6 +39,8 @@ const char versionTag[] = "ver 0.1a";
 #include <Wire.h>
 #include <U8g2lib.h>      // aus dem Arduino-Bibliotheksverwalter, bitte die "U8g2" (ohne Adafruit) von Oliver Kraus installieren
 #include <INA219.h>       // aus dem Arduino-Bibliotheksverwalter, bitte die "ArduinoINA219" von John De Cristofaro, ... installieren
+#include <DallasTemperature.h>
+
 #include "deggl-mandl.h"  // in dieser Datei bitte individuelle Anpassungen vornehmen!
 
 // Display-Parameter 
@@ -48,6 +53,9 @@ const char versionTag[] = "ver 0.1a";
 #endif
 
 INA219 monitor;
+  OneWire ourWire(ONE_WIRE_BUS);
+  DallasTemperature sensors(&ourWire);
+
 
 
 void setup() {
@@ -57,7 +65,8 @@ void setup() {
 
   // INA initialisieren 
   monitor.begin();
-  
+
+  sensors.begin();
   // OLED initialisieren
   u8x8.begin();
   u8x8.clear();
@@ -72,12 +81,14 @@ void setup() {
   
   u8x8.clear();
   u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
+  buttonState = HIGH;
+  lastDebounceTime = millis();
 }
 
 
 void loop() {
   // Hebel runtergezogen //////////////////////////////////////////////////////////////////
-  if (digitalRead(startSwitch) == LOW) { 
+  if (unbouncedStartSwitch() == LOW) { 
     // Motor einschalten
     analogWrite(pwmEngine, rpmPWM); 
     // Display-Ausgabe Status
@@ -87,11 +98,12 @@ void loop() {
     
     // volle Fahrt bis maximaler Strom gemessen wird oder Hebel in Null-Stellung kommt /////
     current = monitor.shuntCurrent() * 1000;
-    while ( (current < torqCurrent) && (digitalRead(startSwitch) == LOW)) {
+    while ( (current < torqCurrent) && (unbouncedStartSwitch() == LOW)) {
       current = monitor.shuntCurrent() * 1000;
     }    
     delay(afterburner);  // Nachlauf in ms, bevor der Motor abgeschaltet wird
     // Motor ausschalten
+    currentAfterburner = monitor.shuntCurrent() * 1000;
     analogWrite(pwmEngine, 0);
     
     // max. Strom wurde nicht erreicht, passiert z.B. bei einem zu schwachen Netzteil! /////
@@ -107,16 +119,22 @@ void loop() {
       u8x8.clear();      
       u8x8.inverse();
       u8x8.fillDisplay(); 
-      u8x8.setCursor(1,3);
+      u8x8.setCursor(2,3);
       u8x8.print("Closed ");
+      u8x8.setCursor(1,7);
+      u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+      u8x8.print(round(currentAfterburner));
+      u8x8.print("mA reached");
+      u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
+ 
     }    
     delay(200);
     
     // Bildschirminhalt fuer ca. 3 Sekunden belassen
-    while (digitalRead(startSwitch) == LOW) {};
+    while (unbouncedStartSwitch() == LOW) {};
     timeStamp = millis();
     while ( (millis() -2800 ) < timeStamp ) {
-      if (digitalRead(startSwitch) == LOW) {
+      if (unbouncedStartSwitch() == LOW) {
         break;  // Aussteigen, falls der Hebel schon früher gezogen wird 
       }
     }
@@ -130,14 +148,34 @@ void loop() {
     
     // Display-Ausgabe Status und aktuelle Einstellungen 
     u8x8.setCursor(1,3);
-    u8x8.print("Ready  ");
-    u8x8.setCursor(1,7);
+    u8x8.print(" Ready  ");
+    u8x8.setCursor(0,7);
     u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
     //u8x8.print("torq= ");
     u8x8.print(torqCurrent);
-    u8x8.print("mA    ");
+    u8x8.print("mA      ");
     u8x8.print(afterburner);
     u8x8.print("ms");
+    
+    sensors.requestTemperatures(); 
+    u8x8.setCursor(0,0);
+    u8x8.print("B ");
+    u8x8.print(round(sensors.getTempCByIndex(0)));
+    u8x8.print("C      M xxC");
+    
     u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
+    
+  }
+}
+
+int unbouncedStartSwitch() {
+  int tmp = digitalRead(startSwitch);
+  if ( (millis() - lastDebounceTime) > debounceDelay) {
+    lastDebounceTime = millis();    
+    buttonState = tmp;
+    return tmp;
+  }
+  else {
+    return buttonState;
   }
 }
