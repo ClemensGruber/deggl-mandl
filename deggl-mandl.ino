@@ -29,7 +29,7 @@
   
 */
 
-const char versionTag[] = "ver 0.1b";
+const char versionTag[] = "ver 0.1br1";
 
 // Größe des Oled Displays. Not defined = 0.96" / defined = 1.3"
 #define DISPLAY_BIG      
@@ -53,32 +53,30 @@ const char versionTag[] = "ver 0.1b";
 #endif
 
 INA219 monitor;
-  OneWire ourWire(ONE_WIRE_BUS);
-  DallasTemperature sensors(&ourWire);
+OneWire ourWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&ourWire);
 
 
 
 void setup() {
   // Definition der pins
   pinMode(pwmEngine, OUTPUT);  
+  analogWrite(pwmEngine, 0);
   pinMode(startSwitch, INPUT_PULLUP);
-
   // INA initialisieren 
   monitor.begin();
-
+  // Temperatursensoren initialisieren
   sensors.begin();
   // OLED initialisieren
   u8x8.begin();
-  u8x8.clear();
-  
+  u8x8.clear();  
   // splash screen fuer Arme ;-)
   u8x8.setCursor(1,1);
   u8x8.setFont(u8x8_font_amstrad_cpc_extended_f); 
   u8x8.print("DegglMandl");
   u8x8.setCursor(1,4);
   u8x8.print(versionTag);
-  delay(3000);  // 3 Sekunden anzeigen
-  
+  delay(3000);  // 3 Sekunden anzeigen  
   u8x8.clear();
   u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
   buttonState = HIGH;
@@ -95,15 +93,15 @@ void loop() {
     u8x8.setCursor(1,3);
     u8x8.print("Working");    
     delay(50);    // hohen Anlaufstrom für 50ms ignorieren
-    
+        
     // volle Fahrt bis maximaler Strom gemessen wird oder Hebel in Null-Stellung kommt /////
-    current = monitor.shuntCurrent() * 1000;
+    current = (int)(monitor.shuntCurrent() * 1000);
     while ( (current < torqCurrent) && (unbouncedStartSwitch() == LOW)) {
-      current = monitor.shuntCurrent() * 1000;
+      current = (int)(monitor.shuntCurrent() * 1000);
     }    
     delay(afterburner);  // Nachlauf in ms, bevor der Motor abgeschaltet wird
     // Motor ausschalten
-    currentAfterburner = monitor.shuntCurrent() * 1000;
+    currentAfterburner = (int)(monitor.shuntCurrent() * 1000);
     analogWrite(pwmEngine, 0);
     
     // max. Strom wurde nicht erreicht, passiert z.B. bei einem zu schwachen Netzteil! /////
