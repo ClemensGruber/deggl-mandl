@@ -4,14 +4,14 @@
 // ** Definition der pins
 // ----------------------
 
-const int startSwitch = 6;  // Microswitch am Hebelarm
-const int pwmEngine = 10;  
-const int ONE_WIRE_BUS = 5;  // Temperatur-Sensoren = 8;
+#define startSwitch 6  // Microswitch am Hebelarm
+#define pwmEngine 10  
+#define ONE_WIRE_BUS 5  // Temperatur-Sensoren = 8;
 
 // Rotary Encoder
-//const int outputA  = 34; // CLK
-//const int outputB  = 35; // DT
-//const int outputSW = 13;
+#define outputA  3 // CLK
+#define outputB  2 // DT
+#define outputSW 4 // Switch
 
 int buttonState = HIGH;
 
