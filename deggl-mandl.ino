@@ -37,9 +37,9 @@ const char versionTag[] = "ver 0.1b";
 // Bibliotheken 
 #include <Arduino.h>
 #include <Wire.h>
-#include <U8g2lib.h>      // aus dem Arduino-Bibliotheksverwalter, bitte die "U8g2" (ohne Adafruit) von Oliver Kraus installieren
-#include <INA219.h>       // aus dem Arduino-Bibliotheksverwalter, bitte die "ArduinoINA219" von John De Cristofaro, ... installieren
-#include <DallasTemperature.h>
+#include <U8g2lib.h>            // aus dem Arduino-Bibliotheksverwalter, bitte die "U8g2" (ohne Adafruit) von Oliver Kraus installieren
+#include <INA219.h>             // aus dem Arduino-Bibliotheksverwalter, bitte die "ArduinoINA219" von John De Cristofaro, ... installieren
+#include <DallasTemperature.h>  // aus dem Arduino-Bibliotheksverwalter, bitte die "DallasTemperature" von Miles Burton, ... installieren
 
 #include "deggl-mandl.h"  // in dieser Datei bitte individuelle Anpassungen vornehmen!
 
