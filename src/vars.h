@@ -9,9 +9,14 @@
 #define ONE_WIRE_BUS 5  // Temperatur-Sensoren = 8;
 
 // Rotary Encoder
-#define outputA  3 // CLK
-#define outputB  2 // DT
+#define encoderPinA  3 // CLK
+#define encoderPinB  2 // DT
 #define outputSW 4 // Switch
+volatile unsigned int encoderPos = 0;  // a counter for the dial
+unsigned int lastReportedPos = 1;      // change management
+//static boolean rotating=false;       // debounce management
+boolean A_set = false;            
+boolean B_set = false;
 
 int buttonState = HIGH;
 
@@ -24,4 +29,5 @@ int afterburner = 80;       // Nachlauf in ms. Definiert das Drehmoment !
 int rpmPWM = 255;           // PWM für Motordrehzahl
 unsigned long timeStamp;
 unsigned long lastDebounceTime;
-int debounceDelay = 5;
+unsigned long debounceDelay = 5;
+int afterburnerOld;

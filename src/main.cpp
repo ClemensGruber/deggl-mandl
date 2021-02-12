@@ -18,31 +18,38 @@
   2021-02-06 Marc Junker    | Version 0.1b
                                - unbounced StartSwitch
                                - Temperatursemsoren  
+  2021-02-10 Marc Junker    | Version 0.1pio2
+                               - Migration zum platfomIO Projekt
+                               - Rotary zur Einstellung des Drehmomentes
+                               - Drehmoment im EEprom gespeichert/geladen
+                               - Auslagerung aller Funktionen in tools.h
                       
   
 
   Todo
   ----
-  - Rotary-Integration: Einstellung des Drehmomentes. 
-    (Evtl. über den Abschaltstrom in mA oder den Nachlauf in ms)
-  - Abspeichern des Drehmomentes im EEProm / laden beim Start
-  - splash screen logo 
+  
+  - splash screen logo
+  - ev. Einstellung des Drehmomentes von 0-Xms auf 1-100% umstellen 
+  - Rotary Switch nutzen.. ;-) -> Menu ?
   
 */
 
-const char versionTag[] = "ver 0.1br2";
+const char versionTag[] = "ver 0.1pio2";
 
 // Größe des Oled Displays. Not defined = 0.96" / defined = 1.3"
 #define DISPLAY_BIG      
 
 // Bibliotheken 
 #include <Arduino.h>
+#include <EEPROM.h>
 #include <Wire.h>
 #include <U8g2lib.h>            // aus dem Arduino-Bibliotheksverwalter, bitte die "U8g2" (ohne Adafruit) von Oliver Kraus installieren
 #include <INA219.h>             // aus dem Arduino-Bibliotheksverwalter, bitte die "ArduinoINA219" von John De Cristofaro, ... installieren
 #include <DallasTemperature.h>  // aus dem Arduino-Bibliotheksverwalter, bitte die "DallasTemperature" von Miles Burton, ... installieren
 
-#include "deggl-mandl.h"  // in dieser Datei bitte individuelle Anpassungen vornehmen!
+#include "vars.h"               // in dieser Datei bitte individuelle Anpassungen vornehmen!
+#include "tools.h"
 
 // Display-Parameter 
 #ifdef DISPLAY_BIG
@@ -64,6 +71,8 @@ void setup() {
   pinMode(pwmEngine, OUTPUT);  
   analogWrite(pwmEngine, 0);
   pinMode(startSwitch, INPUT_PULLUP);
+  pinMode (encoderPinA, INPUT_PULLUP);
+  pinMode (encoderPinB, INPUT_PULLUP);
   // INA initialisieren 
   monitor.begin();
   // Temperatursensoren initialisieren
@@ -77,6 +86,11 @@ void setup() {
   u8x8.print("DegglMandl");
   u8x8.setCursor(1,4);
   u8x8.print(versionTag);
+  attachInterrupt(0, doEncoderA, CHANGE); // encoder pin on interrupt 0 (pin 2)
+  attachInterrupt(1, doEncoderB, CHANGE); // encoder pin on interrupt 1 (pin 3)
+  afterburner = EEPROM.read(0); 
+  encoderPos = afterburner;
+  afterburnerOld = afterburner;
   delay(3000);  // 3 Sekunden anzeigen  
   u8x8.clear();
   u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
@@ -86,10 +100,15 @@ void setup() {
 
 
 void loop() {
+  //rotating = true;  // reset the debouncer
   // Hebel runtergezogen //////////////////////////////////////////////////////////////////
   if (unbouncedStartSwitch() == LOW) { 
     // Motor einschalten
     analogWrite(pwmEngine, rpmPWM); 
+    if (afterburner != afterburnerOld) {
+       EEPROM.write(0,afterburner);
+       afterburnerOld = afterburner;
+    }
     // Display-Ausgabe Status
     u8x8.setCursor(1,3);
     u8x8.print("Working");    
@@ -143,8 +162,7 @@ void loop() {
   else {
   // Warteposition ...  //////////////////////////////////////////////////////////////////    
     // Motor ausschalten
-    analogWrite(pwmEngine, 0); 
-    
+    analogWrite(pwmEngine, 0);
     // Display-Ausgabe Status und aktuelle Einstellungen 
     u8x8.setCursor(1,3);
     u8x8.print(" Ready  ");
@@ -152,8 +170,13 @@ void loop() {
     u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
     //u8x8.print("torq= ");
     u8x8.print(torqCurrent);
-    u8x8.print("mA      ");
+    u8x8.print("mA     ");
+    afterburner = encoderPos;
+    if (afterburner <10) {u8x8.print("  ");}
+    else if (afterburner <100) {u8x8.print(" ");}
     u8x8.print(afterburner);
+    //u8x8.print(encoderPos);
+    
     u8x8.print("ms");
     
     sensors.requestTemperatures(); 
@@ -164,17 +187,5 @@ void loop() {
     
     u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
     
-  }
-}
-
-int unbouncedStartSwitch() {
-  int tmp = digitalRead(startSwitch);
-  if ( (millis() - lastDebounceTime) > debounceDelay) {
-    lastDebounceTime = millis();    
-    buttonState = tmp;
-    return tmp;
-  }
-  else {
-    return buttonState;
   }
 }
