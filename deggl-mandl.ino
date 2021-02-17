@@ -35,7 +35,7 @@
   
 */
 
-const char versionTag[] = "ver 0.1pio2";
+const char versionTag[] = "ver 0.1pio3";
 
 // Größe des Oled Displays. Not defined = 0.96" / defined = 1.3"
 #define DISPLAY_BIG      
