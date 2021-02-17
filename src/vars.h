@@ -12,7 +12,7 @@
 #define encoderPinA  3 // CLK
 #define encoderPinB  2 // DT
 #define outputSW 4 // Switch
-volatile unsigned int encoderPos = 0;  // a counter for the dial
+volatile int encoderPos = 0;  // a counter for the dial
 unsigned int lastReportedPos = 1;      // change management
 //static boolean rotating=false;       // debounce management
 boolean A_set = false;            
@@ -24,10 +24,11 @@ int buttonState = HIGH;
 
 int current = 0;
 int currentAfterburner = 0;
+int afterburnerOld;
+int afterburnerMax = 500;
 int torqCurrent = 1800;     // max. Strom in mA
 int afterburner = 80;       // Nachlauf in ms. Definiert das Drehmoment ! 
 int rpmPWM = 255;           // PWM für Motordrehzahl
 unsigned long timeStamp;
 unsigned long lastDebounceTime;
 unsigned long debounceDelay = 5;
-int afterburnerOld;

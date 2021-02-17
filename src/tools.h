@@ -21,7 +21,7 @@ void doEncoderA()
   if( digitalRead(encoderPinA) != A_set ) {  // debounce once more
     A_set = !A_set;
     // adjust counter + if A leads B
-    if (( A_set && !B_set ) && (encoderPos <200))
+    if (( A_set && !B_set ) && (encoderPos < afterburnerMax))
       encoderPos += 1;
     //rotating = false;  // no more debouncing until loop() hits again
   }
