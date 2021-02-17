@@ -23,6 +23,7 @@
                                - Rotary zur Einstellung des Drehmomentes
                                - Drehmoment im EEprom gespeichert/geladen
                                - Auslagerung aller Funktionen in tools.h
+                               - Temperatursensor im Gehäuse und am Motor
                       
   
 
@@ -182,9 +183,10 @@ void loop() {
     sensors.requestTemperatures(); 
     u8x8.setCursor(0,0);
     u8x8.print("B ");
+    u8x8.print(round(sensors.getTempCByIndex(1)));
+    u8x8.print("C      M ");
     u8x8.print(round(sensors.getTempCByIndex(0)));
-    u8x8.print("C      M xxC");
-    
+    u8x8.print("C");
     u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
     
   }
