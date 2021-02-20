@@ -36,7 +36,7 @@
   
 */
 
-const char versionTag[] = "ver 0.1pio3";
+const char versionTag[] = "ver 0.1pio4";
 
 // Größe des Oled Displays. Not defined = 0.96" / defined = 1.3"
 #define DISPLAY_BIG      
@@ -74,6 +74,7 @@ void setup() {
   pinMode(startSwitch, INPUT_PULLUP);
   pinMode (encoderPinA, INPUT_PULLUP);
   pinMode (encoderPinB, INPUT_PULLUP);
+  pinMode (outputSW, INPUT_PULLUP);
   // INA initialisieren 
   monitor.begin();
   // Temperatursensoren initialisieren
@@ -90,13 +91,15 @@ void setup() {
   attachInterrupt(0, doEncoderA, CHANGE); // encoder pin on interrupt 0 (pin 2)
   attachInterrupt(1, doEncoderB, CHANGE); // encoder pin on interrupt 1 (pin 3)
   afterburner = EEPROM.read(0); 
+  torqCurrent = ((EEPROM.read(1) << 0) & 0xFF) + ((EEPROM.read(2) << 8) & 0xFF00);
+  if (torqCurrent <1000 || torqCurrent >3000) {torqCurrent = 1200;}
   encoderPos = afterburner;
   afterburnerOld = afterburner;
   delay(3000);  // 3 Sekunden anzeigen  
   u8x8.clear();
   u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
-  buttonState = HIGH;
-  lastDebounceTime = millis();
+  buttonStateStart = HIGH;
+  lastDebounceTimeStart = millis();
 }
 
 
@@ -109,6 +112,11 @@ void loop() {
     if (afterburner != afterburnerOld) {
        EEPROM.write(0,afterburner);
        afterburnerOld = afterburner;
+    }
+    if (torqCurrent != torqCurrentOld) {
+       EEPROM.write(1, ((torqCurrent >> 0) & 0xFF));
+       EEPROM.write(2, ((torqCurrent >> 8) & 0xFF));
+       torqCurrentOld = torqCurrent;
     }
     // Display-Ausgabe Status
     u8x8.setCursor(1,3);
@@ -151,8 +159,8 @@ void loop() {
     
     // Bildschirminhalt fuer ca. 3 Sekunden belassen
     while (unbouncedStartSwitch() == LOW) {};
-    timeStamp = millis();
-    while ( (millis() -2800 ) < timeStamp ) {
+    timeStampStart = millis();
+    while ( (millis() -2800 ) < timeStampStart ) {
       if (unbouncedStartSwitch() == LOW) {
         break;  // Aussteigen, falls der Hebel schon früher gezogen wird 
       }
@@ -170,16 +178,30 @@ void loop() {
     u8x8.setCursor(0,7);
     u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
     //u8x8.print("torq= ");
-    u8x8.print(torqCurrent);
-    u8x8.print("mA     ");
-    afterburner = encoderPos;
+    if (configActive == theCurrent) {
+      u8x8.inverse();
+      u8x8.print(torqCurrent);
+      u8x8.print("mA");
+      u8x8.noInverse();
+    }
+    else {
+      u8x8.print(torqCurrent);
+      u8x8.print("mA");
+    }   
+    u8x8.print("     ");
+    //afterburner = encoderPos;
     if (afterburner <10) {u8x8.print("  ");}
     else if (afterburner <100) {u8x8.print(" ");}
-    u8x8.print(afterburner);
-    //u8x8.print(encoderPos);
-    
-    u8x8.print("ms");
-    
+    if (configActive == theAfterburner) {
+      u8x8.inverse();
+      u8x8.print(afterburner);
+      u8x8.print("ms");
+      u8x8.noInverse();
+    }
+    else {
+      u8x8.print(afterburner);
+      u8x8.print("ms");
+    }
     sensors.requestTemperatures(); 
     u8x8.setCursor(0,0);
     u8x8.print("B ");
@@ -188,6 +210,10 @@ void loop() {
     u8x8.print(round(sensors.getTempCByIndex(0)));
     u8x8.print("C");
     u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
-    
+    if (unbouncedRotarySwitch() == LOW) {
+      if (configActive == theCurrent) {configActive = theAfterburner;}
+      else {configActive = theCurrent;}
+    while (unbouncedRotarySwitch() == LOW) {;}
+    }
   }
 }

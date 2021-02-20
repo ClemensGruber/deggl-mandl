@@ -18,17 +18,25 @@ unsigned int lastReportedPos = 1;      // change management
 boolean A_set = false;            
 boolean B_set = false;
 
-int buttonState = HIGH;
+int buttonStateStart = HIGH;
+int buttonStateRotarySW = HIGH;
 
 // Allgemeine Variablen
+
+enum conigActiveEnum { theCurrent, theAfterburner };
+conigActiveEnum configActive = theAfterburner;
 
 int current = 0;
 int currentAfterburner = 0;
 int afterburnerOld;
 int afterburnerMax = 500;
 int torqCurrent = 1800;     // max. Strom in mA
+int torqCurrentOld = 1800;
 int afterburner = 80;       // Nachlauf in ms. Definiert das Drehmoment ! 
 int rpmPWM = 255;           // PWM für Motordrehzahl
-unsigned long timeStamp;
-unsigned long lastDebounceTime;
+unsigned long timeStampStart;
+unsigned long timeStampRotarySW;
+unsigned long lastDebounceTimeStart;
+unsigned long lastDebounceTimeRotarySW;
+
 unsigned long debounceDelay = 5;
