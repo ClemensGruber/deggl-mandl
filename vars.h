@@ -23,8 +23,8 @@ int buttonStateRotarySW = HIGH;
 
 // Allgemeine Variablen
 
-enum conigActiveEnum { theCurrent, theAfterburner };
-conigActiveEnum configActive = theAfterburner;
+enum conigActiveEnum { theReady, theCurrent, theAfterburner };
+conigActiveEnum configActive = theReady;
 
 int current = 0;
 int currentAfterburner = 0;

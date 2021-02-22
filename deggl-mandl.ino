@@ -24,6 +24,10 @@
                                - Drehmoment im EEprom gespeichert/geladen
                                - Auslagerung aller Funktionen in tools.h
                                - Temperatursensor im Gehäuse und am Motor
+  2021-02-16 Marc Junker    | Version 0.1pio3
+                               - Einstellung um afterburner erweitert     
+  2021-02-22 Marc Junker    | Version 0.1pio4                             
+                               - Rotary-Switch: Ready -> config current -> config afterburner -> Ready
                       
   
 
@@ -32,7 +36,7 @@
   
   - splash screen logo
   - ev. Einstellung des Drehmomentes von 0-Xms auf 1-100% umstellen 
-  - Rotary Switch nutzen.. ;-) -> Menu ?
+  - Warung / Abschaltung bei zu hoher
   
 */
 
@@ -106,7 +110,7 @@ void setup() {
 void loop() {
   //rotating = true;  // reset the debouncer
   // Hebel runtergezogen //////////////////////////////////////////////////////////////////
-  if (unbouncedStartSwitch() == LOW) { 
+  if ((unbouncedStartSwitch() == LOW) && (configActive == theReady)) { 
     // Motor einschalten
     analogWrite(pwmEngine, rpmPWM); 
     if (afterburner != afterburnerOld) {
@@ -174,34 +178,48 @@ void loop() {
     analogWrite(pwmEngine, 0);
     // Display-Ausgabe Status und aktuelle Einstellungen 
     u8x8.setCursor(1,3);
-    u8x8.print(" Ready  ");
-    u8x8.setCursor(0,7);
-    u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
-    //u8x8.print("torq= ");
-    if (configActive == theCurrent) {
-      u8x8.inverse();
-      u8x8.print(torqCurrent);
-      u8x8.print("mA");
-      u8x8.noInverse();
-    }
-    else {
-      u8x8.print(torqCurrent);
-      u8x8.print("mA");
-    }   
-    u8x8.print("     ");
-    //afterburner = encoderPos;
-    if (afterburner <10) {u8x8.print("  ");}
-    else if (afterburner <100) {u8x8.print(" ");}
-    if (configActive == theAfterburner) {
-      u8x8.inverse();
-      u8x8.print(afterburner);
-      u8x8.print("ms");
-      u8x8.noInverse();
-    }
-    else {
-      u8x8.print(afterburner);
-      u8x8.print("ms");
-    }
+    switch (configActive) {
+      case theCurrent:
+        u8x8.print("Config ");
+        u8x8.setCursor(0,7);
+        u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+        u8x8.inverse();
+        u8x8.print(torqCurrent);
+        u8x8.print("mA");
+        u8x8.noInverse();
+        u8x8.print("     ");
+        if (afterburner <10) {u8x8.print("  ");}
+        else if (afterburner <100) {u8x8.print(" ");}
+        u8x8.print(afterburner);
+        u8x8.print("ms");
+        break;
+      case theAfterburner:
+        u8x8.print("Config ");
+        u8x8.setCursor(0,7);
+        u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+        u8x8.print(torqCurrent);
+        u8x8.print("mA");
+        u8x8.print("     ");
+        if (afterburner <10) {u8x8.print("  ");}
+        else if (afterburner <100) {u8x8.print(" ");}
+        u8x8.inverse();
+        u8x8.print(afterburner);
+        u8x8.print("ms");
+        u8x8.noInverse();
+        break;
+      case theReady:
+        u8x8.print(" Ready");
+        u8x8.setCursor(0,7);
+        u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+        u8x8.print(torqCurrent);
+        u8x8.print("mA");
+        u8x8.print("     ");
+        if (afterburner <10) {u8x8.print("  ");}
+        else if (afterburner <100) {u8x8.print(" ");}
+        u8x8.print(afterburner);
+        u8x8.print("ms");
+        break;
+    }    
     sensors.requestTemperatures(); 
     u8x8.setCursor(0,0);
     u8x8.print("B ");
@@ -211,8 +229,11 @@ void loop() {
     u8x8.print("C");
     u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
     if (unbouncedRotarySwitch() == LOW) {
-      if (configActive == theCurrent) {configActive = theAfterburner;}
-      else {configActive = theCurrent;}
+      switch (configActive) {
+        case theCurrent: configActive = theAfterburner; break;
+        case theAfterburner: configActive = theReady; break;
+        case theReady: configActive = theCurrent; break;
+      }
     while (unbouncedRotarySwitch() == LOW) {;}
     }
   }
