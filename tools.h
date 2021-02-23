@@ -33,13 +33,14 @@ void doEncoderA()
   if( digitalRead(encoderPinA) != A_set ) {  // debounce once more
     A_set = !A_set;
     // adjust counter + if A leads B
-    if ( A_set && !B_set )
+    if ( A_set && !B_set ) {
       if (configActive == theCurrent){
-      torqCurrent += 10;
+        torqCurrent += 10;
       }
       else {
         afterburner +=1;
       }
+    }
     //rotating = false;  // no more debouncing until loop() hits again
   }
 }
@@ -49,13 +50,14 @@ void doEncoderB(){
   if( digitalRead(encoderPinB) != B_set ) {
     B_set = !B_set;
     //  adjust counter - 1 if B leads A
-    if ( B_set && !A_set )
-         if (configActive == theCurrent){
-      torqCurrent -= 10;
+    if ( B_set && !A_set ) {
+      if (configActive == theCurrent){
+        torqCurrent -= 10;
       }
       else {
         afterburner -=1;
       }
+    }
     //rotating = false;
   }
 }

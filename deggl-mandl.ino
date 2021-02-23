@@ -113,15 +113,6 @@ void loop() {
   if ((unbouncedStartSwitch() == LOW) && (configActive == theReady)) { 
     // Motor einschalten
     analogWrite(pwmEngine, rpmPWM); 
-    if (afterburner != afterburnerOld) {
-       EEPROM.write(0,afterburner);
-       afterburnerOld = afterburner;
-    }
-    if (torqCurrent != torqCurrentOld) {
-       EEPROM.write(1, ((torqCurrent >> 0) & 0xFF));
-       EEPROM.write(2, ((torqCurrent >> 8) & 0xFF));
-       torqCurrentOld = torqCurrent;
-    }
     // Display-Ausgabe Status
     u8x8.setCursor(1,3);
     u8x8.print("Working");    
@@ -231,7 +222,18 @@ void loop() {
     if (unbouncedRotarySwitch() == LOW) {
       switch (configActive) {
         case theCurrent: configActive = theAfterburner; break;
-        case theAfterburner: configActive = theReady; break;
+        case theAfterburner: 
+          configActive = theReady; 
+          if (afterburner != afterburnerOld) {
+            EEPROM.write(0,afterburner);
+            afterburnerOld = afterburner;
+          }
+          if (torqCurrent != torqCurrentOld) {
+            EEPROM.write(1, ((torqCurrent >> 0) & 0xFF));
+            EEPROM.write(2, ((torqCurrent >> 8) & 0xFF));
+            torqCurrentOld = torqCurrent;
+          }
+          break;
         case theReady: configActive = theCurrent; break;
       }
     while (unbouncedRotarySwitch() == LOW) {;}
