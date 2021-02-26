@@ -1,7 +1,6 @@
 
 
 
-
 int unbouncedStartSwitch() {
   int tmp = digitalRead(startSwitch);
   if ( (millis() - lastDebounceTimeStart) > debounceDelay) {

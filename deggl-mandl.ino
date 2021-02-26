@@ -28,6 +28,9 @@
                                - Einstellung um afterburner erweitert     
   2021-02-22 Marc Junker    | Version 0.1pio4                             
                                - Rotary-Switch: Ready -> config current -> config afterburner -> Ready
+  2021-02-22 Marc Junker    | Version 0.2a
+                               - lastfreie Motordrehzahl wird nach dem Einschalten kalibriert
+                               - Motor fährt mit extrm langsamer Drehzahl an und bschleunigt erst, wenn der Deckel anliegt 
                       
   
 
@@ -40,7 +43,7 @@
   
 */
 
-const char versionTag[] = "ver 0.1pio4";
+const char versionTag[] = "ver 0.2a";
 
 // Größe des Oled Displays. Not defined = 0.96" / defined = 1.3"
 #define DISPLAY_BIG      
@@ -79,6 +82,7 @@ void setup() {
   pinMode (encoderPinA, INPUT_PULLUP);
   pinMode (encoderPinB, INPUT_PULLUP);
   pinMode (outputSW, INPUT_PULLUP);
+  pinMode(tacho, INPUT_PULLUP);
   // INA initialisieren 
   monitor.begin();
   // Temperatursensoren initialisieren
@@ -99,7 +103,32 @@ void setup() {
   if (torqCurrent <1000 || torqCurrent >3000) {torqCurrent = 1200;}
   encoderPos = afterburner;
   afterburnerOld = afterburner;
-  delay(3000);  // 3 Sekunden anzeigen  
+  u8x8.setCursor(0,7);
+  for (int i= 1; i<=rpmVoid; i++) {
+    analogWrite(pwmEngine, i);
+    delay(10);
+  }
+  while (( pulseLength< tachoMin) || (pulseLength >tachoMax)) {    /////////////////////////// lastfreie Drehzahl einstellen
+    analogWrite(pwmEngine, rpmVoid); 
+    delay(10);
+    pulseLength = pulseIn(tacho,HIGH);
+    u8x8.setCursor(0,7);
+    u8x8.print("calib.  ");
+    u8x8.print(pulseLength);
+    u8x8.print(" ");
+    u8x8.print(rpmVoid);
+    delay(100);
+    if (pulseLength <= tachoMin ) {
+      rpmVoid -=1;  
+    }
+    else if (pulseLength >= tachoMax ) {
+      rpmVoid +=1;
+    }
+ }
+  u8x8.setCursor(0,7);
+  u8x8.print("fixed  ");
+  analogWrite(pwmEngine, 0); 
+  delay(2000);  // 3 Sekunden anzeigen  
   u8x8.clear();
   u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
   buttonStateStart = HIGH;
@@ -112,12 +141,18 @@ void loop() {
   // Hebel runtergezogen //////////////////////////////////////////////////////////////////
   if ((unbouncedStartSwitch() == LOW) && (configActive == theReady)) { 
     // Motor einschalten
-    analogWrite(pwmEngine, rpmPWM); 
+    u8x8.setCursor(1,3);
+    u8x8.print("feel..");    
+    analogWrite(pwmEngine, rpmVoid); 
+    delay(30);  
+    do {
+      pulseTMP = pulseIn(tacho,HIGH, (pulseLength * 10));
+    } while ((pulseTMP < (pulseLength * 1.8)) && (pulseTMP != 0) && (unbouncedStartSwitch() == LOW));
+    if (unbouncedStartSwitch() == LOW) {analogWrite(pwmEngine, rpmPWM);} 
     // Display-Ausgabe Status
     u8x8.setCursor(1,3);
     u8x8.print("Working");    
-    delay(50);    // hohen Anlaufstrom für 50ms ignorieren
-        
+    delay(50);    // hohen Anlaufstrom für 50ms ignorieren  
     // volle Fahrt bis maximaler Strom gemessen wird oder Hebel in Null-Stellung kommt /////
     current = (int)(monitor.shuntCurrent() * 1000);
     while ( (current < torqCurrent) && (unbouncedStartSwitch() == LOW)) {
@@ -127,14 +162,12 @@ void loop() {
     // Motor ausschalten
     currentAfterburner = (int)(monitor.shuntCurrent() * 1000);
     analogWrite(pwmEngine, 0);
-    
     // max. Strom wurde nicht erreicht, passiert z.B. bei einem zu schwachen Netzteil! /////
     if (current < torqCurrent) {
       // Display-Ausgabe Fehlermeldung
       u8x8.setCursor(1,3);
       u8x8.print("Broke !");     
     }
-    
     // max. Strom wurde erreicht, Deckel sollte straff sitzen! /////////////////////////////    
     else {
       // Display-Ausgabe Status
@@ -148,10 +181,8 @@ void loop() {
       u8x8.print(max(current, currentAfterburner));
       u8x8.print("mA reached");
       u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
- 
     }    
-    delay(200);
-    
+    delay(200);  
     // Bildschirminhalt fuer ca. 3 Sekunden belassen
     while (unbouncedStartSwitch() == LOW) {};
     timeStampStart = millis();
