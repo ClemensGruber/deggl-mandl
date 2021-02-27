@@ -38,21 +38,31 @@
                                            # ##########################################
                                - PWM Frequenz über Register TCCR2B zwischen 30Hz und 31KHz einstellbar
                                - Minor bugfixes,  torqCurrent und afterburner Min/Max,                                  
-  
+  2021-02-28 Marc Junker    | Version 0.2c
+                               - Anzahl und Reihenfolge der Temperatursensoren konfigurierbar 
+
 
   Todo
   ----
   
   - splash screen logo
   - ev. Einstellung des Drehmomentes von 0-Xms auf 1-100% umstellen 
-  - Warung / Abschaltung bei zu hoher
+  - Warung / Abschaltung bei zu hoher Temperatur
   
 */
 
-const char versionTag[] = "ver 0.2b";
+const char versionTag[] = "ver 0.2c";
 
 // Größe des Oled Displays. Not defined = 0.96" / defined = 1.3"
-#define DISPLAY_BIG      
+#define DISPLAY_BIG     
+
+// Positionierung der Temperatursensoren: 0 = aus, 1 der Erste, 2 der Zweite.. ;-) 
+// BSP: keine Temperatursensoren ->  {0,0}
+//      ein Temperatursensor auf PCB -> {1,0}
+//      ein Temperatursensor im Motor -> {0,1}
+//      zwei Temperatursensoren, erster auf dem Board, zweiter im Motor -> {1,2}
+//      zwei Temperatursensoren, zweiter auf dem Board, erster im Motor -> {2,1}
+const int tempSensors[2] = {2,1};
 
 // Bibliotheken 
 #include <Arduino.h>
@@ -82,6 +92,8 @@ DallasTemperature sensors(&ourWire);
 
 void setup() {
 
+  // PWM Frequenz der Motorsteuerung
+  //
   // TCCR2B = TCCR2B & B11111000 | B00000001;    // set timer 2 divisor to     1 for PWM frequency of 31372.55 Hz
   //TCCR2B = TCCR2B & B11111000 | B00000010;    // set timer 2 divisor to     8 for PWM frequency of  3921.16 Hz
   //TCCR2B = TCCR2B & B11111000 | B00000011;    // set timer 2 divisor to    32 for PWM frequency of   980.39 Hz
@@ -258,12 +270,18 @@ void loop() {
         break;
     }    
     sensors.requestTemperatures(); 
-    u8x8.setCursor(0,0);
-    u8x8.print("B ");
-    u8x8.print(round(sensors.getTempCByIndex(1)));
-    u8x8.print("C      M ");
-    u8x8.print(round(sensors.getTempCByIndex(0)));
-    u8x8.print("C");
+    if (tempSensors[0] !=0) {
+      u8x8.setCursor(0,0);
+      u8x8.print("B ");
+      u8x8.print(round(sensors.getTempCByIndex((tempSensors[0]-1))));
+      u8x8.print("C");
+    }
+    if (tempSensors[1] !=0) {
+      u8x8.setCursor(5,0);
+      u8x8.print("      M ");
+      u8x8.print(round(sensors.getTempCByIndex((tempSensors[1]-1))));
+      u8x8.print("C");
+    }
     u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
     if (unbouncedRotarySwitch() == LOW) {
       switch (configActive) {
