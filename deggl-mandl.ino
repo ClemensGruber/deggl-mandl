@@ -31,7 +31,13 @@
   2021-02-22 Marc Junker    | Version 0.2a
                                - lastfreie Motordrehzahl wird nach dem Einschalten kalibriert
                                - Motor fährt mit extrm langsamer Drehzahl an und bschleunigt erst, wenn der Deckel anliegt 
-                      
+  2021-02-27 Marc Junker    | Version 0.2b
+                               - WICHTIG : ############################################
+                                           #   Motor PWM Pin von D6 auf D11 umgelegt  #
+                                           #   StartSwitch auf D10 umgelegt           #
+                                           # ##########################################
+                               - PWM Frequenz über Register TCCR2B zwischen 30Hz und 31KHz einstellbar
+                               - Minor bugfixes,  torqCurrent und afterburner Min/Max,                                  
   
 
   Todo
@@ -43,7 +49,7 @@
   
 */
 
-const char versionTag[] = "ver 0.2a";
+const char versionTag[] = "ver 0.2b";
 
 // Größe des Oled Displays. Not defined = 0.96" / defined = 1.3"
 #define DISPLAY_BIG      
@@ -75,6 +81,15 @@ DallasTemperature sensors(&ourWire);
 
 
 void setup() {
+
+  // TCCR2B = TCCR2B & B11111000 | B00000001;    // set timer 2 divisor to     1 for PWM frequency of 31372.55 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000010;    // set timer 2 divisor to     8 for PWM frequency of  3921.16 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000011;    // set timer 2 divisor to    32 for PWM frequency of   980.39 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000100;    // set timer 2 divisor to    64 for PWM frequency of   490.20 Hz (The DEFAULT)
+  TCCR2B = TCCR2B & B11111000 | B00000101;    // set timer 2 divisor to   128 for PWM frequency of   245.10 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000110;    // set timer 2 divisor to   256 for PWM frequency of   122.55 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000111;    // set timer 2 divisor to  1024 for PWM frequency of    30.64 Hz
+
   // Definition der pins
   pinMode(pwmEngine, OUTPUT);  
   analogWrite(pwmEngine, 0);
@@ -118,17 +133,17 @@ void setup() {
     u8x8.print(" ");
     u8x8.print(rpmVoid);
     delay(100);
-    if (pulseLength <= tachoMin ) {
-      rpmVoid -=1;  
-    }
-    else if (pulseLength >= tachoMax ) {
+    if ((pulseLength >= tachoMax) ||  (pulseLength <= 0)) {
       rpmVoid +=1;
+    }
+    else if (pulseLength <= tachoMin ) {
+      rpmVoid -=1;  
     }
  }
   u8x8.setCursor(0,7);
   u8x8.print("fixed  ");
   analogWrite(pwmEngine, 0); 
-  delay(2000);  // 3 Sekunden anzeigen  
+  delay(2000);  // 2 Sekunden anzeigen  
   u8x8.clear();
   u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
   buttonStateStart = HIGH;
@@ -147,7 +162,7 @@ void loop() {
     delay(30);  
     do {
       pulseTMP = pulseIn(tacho,HIGH, (pulseLength * 10));
-    } while ((pulseTMP < (pulseLength * 1.8)) && (pulseTMP != 0) && (unbouncedStartSwitch() == LOW));
+    } while ((pulseTMP < (pulseLength * 3.0)) && (pulseTMP != 0) && (unbouncedStartSwitch() == LOW));
     if (unbouncedStartSwitch() == LOW) {analogWrite(pwmEngine, rpmPWM);} 
     // Display-Ausgabe Status
     u8x8.setCursor(1,3);

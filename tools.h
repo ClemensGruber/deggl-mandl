@@ -33,10 +33,10 @@ void doEncoderA()
     A_set = !A_set;
     // adjust counter + if A leads B
     if ( A_set && !B_set ) {
-      if (configActive == theCurrent){
+      if ((configActive == theCurrent) && (torqCurrent < torqCurrentMax)) {
         torqCurrent += 10;
       }
-      else {
+      else if (afterburner < afterburnerMax) {
         afterburner +=1;
       }
     }
@@ -50,10 +50,10 @@ void doEncoderB(){
     B_set = !B_set;
     //  adjust counter - 1 if B leads A
     if ( B_set && !A_set ) {
-      if (configActive == theCurrent){
+      if ((configActive == theCurrent) && (torqCurrent > torqCurrentMin)){
         torqCurrent -= 10;
       }
-      else {
+      else if (afterburner > afterburnerMin) {
         afterburner -=1;
       }
     }
