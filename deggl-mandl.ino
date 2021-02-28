@@ -39,7 +39,10 @@
                                - PWM Frequenz über Register TCCR2B zwischen 30Hz und 31KHz einstellbar
                                - Minor bugfixes,  torqCurrent und afterburner Min/Max,                                  
   2021-02-28 Marc Junker    | Version 0.2c
-                               - Anzahl und Reihenfolge der Temperatursensoren konfigurierbar 
+                               - Anzahl und Reihenfolge der Temperatursensoren konfigurierbar
+  2021-02-28 Marc Junker    | Verion 0.2d
+                              - Minor bugfixes, Display-Formatierung auf sprintf umgestellt
+
 
 
   Todo
@@ -51,7 +54,7 @@
   
 */
 
-const char versionTag[] = "ver 0.2c";
+const char versionTag[] = "ver 0.2d";
 
 // Größe des Oled Displays. Not defined = 0.96" / defined = 1.3"
 #define DISPLAY_BIG     
