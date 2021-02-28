@@ -30,6 +30,8 @@ boolean B_set = false;
 int buttonStateStart = HIGH;
 int buttonStateRotarySW = HIGH;
 
+char tmpBuf[6];
+
 // Allgemeine Variablen
 enum conigActiveEnum { theReady, theCurrent, theAfterburner };
 conigActiveEnum configActive = theReady;
@@ -41,7 +43,7 @@ int torqCurrent = 1800;     // max. Strom in mA
 int torqCurrentOld = 1800;
 int afterburner = 80;       // Nachlauf in ms. Definiert das Drehmoment ! 
 int rpmPWM = 255;           // PWM für Motordrehzahl unter Last
-int rpmVoid = 9;           // PWM für Kalibrierung 18
+int rpmVoid = 12;           // PWM für Kalibrierung 18
 int pulseTMP;
 unsigned long pulseLength;
 unsigned long timeStampStart;

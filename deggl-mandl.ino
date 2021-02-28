@@ -140,11 +140,17 @@ void setup() {
     delay(10);
     pulseLength = pulseIn(tacho,HIGH);
     u8x8.setCursor(0,7);
-    u8x8.print("calib.  ");
-    u8x8.print(pulseLength);
-    u8x8.print(" ");
-    u8x8.print(rpmVoid);
-    delay(100);
+    u8x8.print("calibrating");
+    //sprintf(tmpBuf, "%3d", (int)pulseLength);
+    //u8x8.setCursor(7,7);
+    //u8x8.drawString(7, 7, tmpBuf);
+    //u8x8.print(tmpBuf);
+    //u8x8.print(" ");
+    sprintf(tmpBuf, "%3d", rpmVoid);
+    //u8x8.setCursor(12,7);
+    //u8x8.print(tmpBuf);
+    u8x8.drawString(12, 7, tmpBuf);
+    delay(200);
     if ((pulseLength >= tachoMax) ||  (pulseLength <= 0)) {
       rpmVoid +=1;
     }
@@ -153,7 +159,7 @@ void setup() {
     }
  }
   u8x8.setCursor(0,7);
-  u8x8.print("fixed  ");
+  u8x8.print("..done !    ");
   analogWrite(pwmEngine, 0); 
   delay(2000);  // 2 Sekunden anzeigen  
   u8x8.clear();
@@ -248,12 +254,10 @@ void loop() {
         u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
         u8x8.print(torqCurrent);
         u8x8.print("mA");
-        u8x8.print("     ");
-        if (afterburner <10) {u8x8.print("  ");}
-        else if (afterburner <100) {u8x8.print(" ");}
         u8x8.inverse();
-        u8x8.print(afterburner);
-        u8x8.print("ms");
+        sprintf(tmpBuf, "%3d", afterburner);
+        u8x8.drawString(11, 7, tmpBuf);
+        u8x8.drawString(14,7,"ms");
         u8x8.noInverse();
         break;
       case theReady:
@@ -262,11 +266,9 @@ void loop() {
         u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
         u8x8.print(torqCurrent);
         u8x8.print("mA");
-        u8x8.print("     ");
-        if (afterburner <10) {u8x8.print("  ");}
-        else if (afterburner <100) {u8x8.print(" ");}
-        u8x8.print(afterburner);
-        u8x8.print("ms");
+        sprintf(tmpBuf, "%3d", afterburner);
+        u8x8.drawString(11, 7, tmpBuf);
+        u8x8.drawString(14,7,"ms");
         break;
     }    
     sensors.requestTemperatures(); 
