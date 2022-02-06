@@ -121,9 +121,10 @@ void setup() {
   u8x8.begin();
   u8x8.clear();  
   // splash screen fuer Arme ;-)
-  u8x8.setCursor(1,1);
-  u8x8.setFont(u8x8_font_amstrad_cpc_extended_f); 
+  u8x8.setCursor(0,0);
+  u8x8.setFont(u8x8_font_7x14B_1x2_r);
   u8x8.print("DegglMandl");
+  u8x8.setFont(u8x8_font_amstrad_cpc_extended_r); 
   u8x8.setCursor(1,4);
   u8x8.print(versionTag);
   attachInterrupt(0, doEncoderA, CHANGE); // encoder pin on interrupt 0 (pin 2)
