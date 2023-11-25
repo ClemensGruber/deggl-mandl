@@ -24,6 +24,7 @@ https://www.obi.de/bohrstaender/bohrstaender/p/8035487
 - **OLED-Display** mit I2C-Schnittstelle, 0.96" oder 1.3", die Platine untersützt Displays sowohl mit Vcc-GND-SCL-SDA Anschlüssen, und auch Pin-Reihenfolge  GND-Vcc-SCL-SDA 
 - **Spannungsregler**, LM2596S-Board
 - **Strom-Sensor**, INA219-Board, z.B. https://www.reichelt.de/entwicklerboards-stromsensor-mit-breakoutboard-ina219-debo-sens-power-p266047.html
+- **passiver Buzzer**, 5V
 - **Rotary Encoder** 
 -- KY-040, etwas https://www.amazon.de/WayinTop-Encoder-Drehgeber-Drehwinkelgeber-Druckknopf/dp/B07T3672VK/
 -- oder diesen etwas kompakteren: https://www.ebay.de/itm/2-5-10PCS-NEW-Rotary-Encoder-Sensor-Development-Module-Brick-Board-Potentiometer/193633079359
