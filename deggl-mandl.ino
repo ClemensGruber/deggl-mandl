@@ -42,6 +42,13 @@
                                - Anzahl und Reihenfolge der Temperatursensoren konfigurierbar
   2021-02-28 Marc Junker    | Verion 0.2d
                               - Minor bugfixes, Display-Formatierung auf sprintf umgestellt
+  2023-10-25 Marc Junker    | Version 0.2e
+                              - afterburner EEProm Wert von 1 auf 2 Bytes erweitert, damit >255ms abgespeichert
+                                werden kann
+  2023-10-25 Marc Junker    | Version 0.2f
+                              - passiver Buzzer auf Pin 9
+                              - Sound für OK und Error in Funktionen. Sound an- und ausschaltbar.
+                              - minor bug fixes
 
 
 
@@ -54,7 +61,7 @@
   
 */
 
-const char versionTag[] = "ver 0.2d";
+const char versionTag[] = "ver 0.2g";
 
 // Größe des Oled Displays. Not defined = 0.96" / defined = 1.3"
 #define DISPLAY_BIG     
@@ -74,6 +81,7 @@ const int tempSensors[2] = {2,1};
 #include <U8g2lib.h>            // aus dem Arduino-Bibliotheksverwalter, bitte die "U8g2" (ohne Adafruit) von Oliver Kraus installieren
 #include <INA219.h>             // aus dem Arduino-Bibliotheksverwalter, bitte die "ArduinoINA219" von John De Cristofaro, ... installieren
 #include <DallasTemperature.h>  // aus dem Arduino-Bibliotheksverwalter, bitte die "DallasTemperature" von Miles Burton, ... installieren
+
 
 #include "vars.h"               // in dieser Datei bitte individuelle Anpassungen vornehmen!
 #include "tools.h"
@@ -113,6 +121,7 @@ void setup() {
   pinMode (encoderPinB, INPUT_PULLUP);
   pinMode (outputSW, INPUT_PULLUP);
   pinMode(tacho, INPUT_PULLUP);
+  pinMode(buzzer, OUTPUT);
   // INA initialisieren 
   monitor.begin();
   // Temperatursensoren initialisieren
@@ -122,23 +131,41 @@ void setup() {
   u8x8.clear();  
   // splash screen fuer Arme ;-)
   u8x8.setCursor(0,0);
-  u8x8.setFont(u8x8_font_7x14B_1x2_r);
-  u8x8.print("DegglMandl");
+  //u8x8.setFont(u8x8_font_7x14B_1x2_r);
+  u8x8.setFont(u8x8_font_px437wyse700b_2x2_r); 
+  u8x8.print("TwistR");
   u8x8.setFont(u8x8_font_amstrad_cpc_extended_r); 
   u8x8.setCursor(1,4);
   u8x8.print(versionTag);
+   //sprintf(tmpBuf, "%3d", monitor.getBusVoltage() );
+    //u8x8.setCursor(12,7);
+    //u8x8.print(tmpBuf);
+    //u8x8.drawString(1,4,tmpBuf);
+  
+  //u8x8.setFont(u8x8_font_open_iconic_play_2x2);
+  // u8x8.setFont(u8x8_font_open_iconic_weather_4x4);
+  //u8x8.drawString(2,2,'@'+1);
+
+  //u8x8.drawUTF8(2, 2, "♪");
+  //u8x8.setFont(u8x8_font_amstrad_cpc_extended_r); 
+  
   attachInterrupt(0, doEncoderA, CHANGE); // encoder pin on interrupt 0 (pin 2)
   attachInterrupt(1, doEncoderB, CHANGE); // encoder pin on interrupt 1 (pin 3)
-  afterburner = EEPROM.read(0); 
-  torqCurrent = ((EEPROM.read(1) << 0) & 0xFF) + ((EEPROM.read(2) << 8) & 0xFF00);
+  //afterburner = EEPROM.read(0); 
+  afterburner = ((EEPROM.read(0) << 0) & 0xFF) + ((EEPROM.read(1) << 8) & 0xFF00);
+  torqCurrent = ((EEPROM.read(2) << 0) & 0xFF) + ((EEPROM.read(3) << 8) & 0xFF00);
+  buzzerActive = EEPROM.read(4);
   if (torqCurrent <1000 || torqCurrent >3000) {torqCurrent = 1200;}
+  if (afterburner <0 || afterburner >500) {afterburner = 100;}
   encoderPos = afterburner;
   afterburnerOld = afterburner;
+  buzzerActiveOld = buzzerActive;
   u8x8.setCursor(0,7);
   for (int i= 1; i<=rpmVoid; i++) {
     analogWrite(pwmEngine, i);
     delay(10);
   }
+  #ifdef CALIBRATION
   while (( pulseLength< tachoMin) || (pulseLength >tachoMax)) {    /////////////////////////// lastfreie Drehzahl einstellen
     analogWrite(pwmEngine, rpmVoid); 
     delay(10);
@@ -162,8 +189,12 @@ void setup() {
       rpmVoid -=1;  
     }
  }
+  #endif
+  rpmPWM = rpmVoid * 5;    // Faktor für Lastdrehzahl 
+
   u8x8.setCursor(0,7);
   u8x8.print("..done !    ");
+  playBuzzer(theOK);
   analogWrite(pwmEngine, 0); 
   delay(2000);  // 2 Sekunden anzeigen  
   u8x8.clear();
@@ -176,11 +207,91 @@ void setup() {
 void loop() {
   //rotating = true;  // reset the debouncer
   // Hebel runtergezogen //////////////////////////////////////////////////////////////////
+ if ((unbouncedStartSwitch() == LOW) && (configActive == theReady)) { 
+    // Motor einschalten
+    u8x8.setCursor(1,3);
+    u8x8.print("Work..");
+    analogWrite(pwmEngine, rpmVoid); 
+    rpmRaise = rpmVoid;
+    delay(30);  
+    do {
+      pulseTMP = pulseIn(tacho,HIGH, tachoMax);
+       if ( ((pulseTMP >= tachoMax) || (pulseTMP == 0)) && (rpmRaise <255)) {
+        rpmRaise +=3;
+       }
+       else if ((pulseTMP < tachoMin) && (rpmRaise > rpmVoid)) {
+        rpmRaise -=1;
+       }
+       analogWrite(pwmEngine, rpmRaise);
+       currentTMP = (int)(monitor.shuntCurrent() * 1000); 
+       for (int i=1; i<9; i++) {
+         currentTMP += (int)(monitor.shuntCurrent() * 1000); 
+       }
+       current = (int)( currentTMP / 9);
+    }
+    while ( (current < torqCurrent) && (unbouncedStartSwitch() == LOW));
+      
+      
+      
+      
+  
+    // Display-Ausgabe Status
+    //u8x8.setCursor(1,3);
+    //u8x8.print("Working");      
+ 
+ 
+ delay(afterburner);  // Nachlauf in ms, bevor der Motor abgeschaltet wird
+    // Motor ausschalten
+    currentAfterburner = (int)(monitor.shuntCurrent() * 1000);
+    analogWrite(pwmEngine, 0);
+    // max. Strom wurde nicht erreicht, passiert z.B. bei einem zu schwachen Netzteil! /////
+    if (current < torqCurrent) {
+      // Display-Ausgabe Fehlermeldung
+      u8x8.setCursor(1,3);
+      u8x8.print("Broke !");     
+      delay(300);
+      playBuzzer(theError);
+    }
+    // max. Strom wurde erreicht, Deckel sollte straff sitzen! /////////////////////////////    
+    else {
+      // Display-Ausgabe Status
+      u8x8.clear();      
+      u8x8.inverse();
+      u8x8.fillDisplay(); 
+      u8x8.setCursor(2,3);
+      u8x8.print("Closed ");
+      u8x8.setCursor(1,7);
+      u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+      //u8x8.print(max(current, currentAfterburner));
+      u8x8.print(current);
+      u8x8.print("mA reached");
+      u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
+      playBuzzer(theOK);
+    }
+ 
+
+    delay(200);  
+    // Bildschirminhalt fuer ca. 3 Sekunden belassen
+    while (unbouncedStartSwitch() == LOW) {};
+    timeStampStart = millis();
+    while ( (millis() -1000 ) < timeStampStart ) {
+      if (unbouncedStartSwitch() == LOW) {
+        break;  // Aussteigen, falls der Hebel schon früher gezogen wird 
+      }
+    }
+    u8x8.noInverse();  // Display zuruecksetzen 
+    u8x8.clear();    
+  }
+ 
+ 
+   ////////////////// Altes Verfahren ////////////////////////////////////////////
+   /* 
   if ((unbouncedStartSwitch() == LOW) && (configActive == theReady)) { 
     // Motor einschalten
     u8x8.setCursor(1,3);
     u8x8.print("feel..");    
     analogWrite(pwmEngine, rpmVoid); 
+    rpmRaise = rpmVoid;
     delay(30);  
     do {
       pulseTMP = pulseIn(tacho,HIGH, (pulseLength * 10));
@@ -231,6 +342,9 @@ void loop() {
     u8x8.noInverse();  // Display zuruecksetzen 
     u8x8.clear();    
   }
+  
+  */
+  
   else {
   // Warteposition ...  //////////////////////////////////////////////////////////////////    
     // Motor ausschalten
@@ -247,17 +361,73 @@ void loop() {
         u8x8.print("mA");
         u8x8.noInverse();
         u8x8.print("     ");
+      if (buzzerActive) {
+           u8x8.setFont(u8x8_font_open_iconic_play_1x1);
+           u8x8.drawGlyph(8,7,0x4d );
+           u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+        }
+        else {
+           u8x8.setFont(u8x8_font_open_iconic_weather_1x1);
+           u8x8.drawGlyph(8,7,0x42 );
+           u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+        }
+        //sprintf(tmpBuf, "%1d", buzzerActive);
+        //u8x8.drawString(8, 7, tmpBuf);
         if (afterburner <10) {u8x8.print("  ");}
         else if (afterburner <100) {u8x8.print(" ");}
         u8x8.print(afterburner);
         u8x8.print("ms");
         break;
+      case theBuzzer:
+        u8x8.print("Config ");
+        u8x8.setCursor(0,7);
+        u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+        u8x8.print(torqCurrent);
+        u8x8.print("mA");
+       
+
+        if (afterburner <10) {u8x8.print("  ");}
+        else if (afterburner <100) {u8x8.print(" ");}
+        //sprintf(tmpBuf, "%1d", buzzerActive);
+        u8x8.inverse();
+        if (buzzerActive) {
+           u8x8.setFont(u8x8_font_open_iconic_play_1x1);
+           u8x8.drawGlyph(8,7,0x4d );
+           u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+        }
+        else {
+           u8x8.setFont(u8x8_font_open_iconic_weather_1x1);
+           u8x8.drawGlyph(8,7,0x42 );
+           u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+        }
+        
+        //u8x8.drawString(8, 7, tmpBuf);
+        u8x8.noInverse();
+
+        sprintf(tmpBuf, "%3d", afterburner);
+        u8x8.drawString(11, 7, tmpBuf);
+        u8x8.drawString(14,7,"ms");
+
+      break;  
       case theAfterburner:
         u8x8.print("Config ");
         u8x8.setCursor(0,7);
         u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
         u8x8.print(torqCurrent);
         u8x8.print("mA");
+        if (buzzerActive) {
+           u8x8.setFont(u8x8_font_open_iconic_play_1x1);
+           u8x8.drawGlyph(8,7,0x4d );
+           u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+        }
+        else {
+           u8x8.setFont(u8x8_font_open_iconic_weather_1x1);
+           u8x8.drawGlyph(8,7,0x42 );
+           u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+        }
+        //sprintf(tmpBuf, "%1d", buzzerActive);
+        //u8x8.drawString(8, 7, tmpBuf);
+
         u8x8.inverse();
         sprintf(tmpBuf, "%3d", afterburner);
         u8x8.drawString(11, 7, tmpBuf);
@@ -270,6 +440,21 @@ void loop() {
         u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
         u8x8.print(torqCurrent);
         u8x8.print("mA");
+       if (buzzerActive) {
+           u8x8.setFont(u8x8_font_open_iconic_play_1x1);
+           u8x8.drawGlyph(8,7,0x4d );
+           u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+        }
+        else {
+           u8x8.setFont(u8x8_font_open_iconic_weather_1x1);
+           u8x8.drawGlyph(8,7,0x42 );
+           u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
+        }
+        //sprintf(tmpBuf, "%1d", buzzerActive);
+        //u8x8.drawString(8, 7, tmpBuf);
+        //u8x8.setFont(u8x8_font_open_iconic_play_1x1);
+        //u8x8.drawGlyph(8,7,0x4d );
+        //u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);
         sprintf(tmpBuf, "%3d", afterburner);
         u8x8.drawString(11, 7, tmpBuf);
         u8x8.drawString(14,7,"ms");
@@ -291,17 +476,24 @@ void loop() {
     u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
     if (unbouncedRotarySwitch() == LOW) {
       switch (configActive) {
-        case theCurrent: configActive = theAfterburner; break;
+        case theCurrent: configActive = theBuzzer; break;
+        case theBuzzer:  configActive = theAfterburner; break;
         case theAfterburner: 
           configActive = theReady; 
           if (afterburner != afterburnerOld) {
-            EEPROM.write(0,afterburner);
+            //EEPROM.write(0,afterburner);
+            EEPROM.write(0, ((afterburner >> 0) & 0xFF));
+            EEPROM.write(1, ((afterburner >> 8) & 0xFF));
             afterburnerOld = afterburner;
           }
           if (torqCurrent != torqCurrentOld) {
-            EEPROM.write(1, ((torqCurrent >> 0) & 0xFF));
-            EEPROM.write(2, ((torqCurrent >> 8) & 0xFF));
+            EEPROM.write(2, ((torqCurrent >> 0) & 0xFF));
+            EEPROM.write(3, ((torqCurrent >> 8) & 0xFF));
             torqCurrentOld = torqCurrent;
+          }
+          if (buzzerActive != buzzerActiveOld) {
+            EEPROM.write(4, buzzerActive);
+            buzzerActiveOld = buzzerActive;
           }
           break;
         case theReady: configActive = theCurrent; break;

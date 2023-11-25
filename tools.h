@@ -36,8 +36,11 @@ void doEncoderA()
       if ((configActive == theCurrent) && (torqCurrent < torqCurrentMax)) {
         torqCurrent += 10;
       }
-      else if (afterburner < afterburnerMax) {
+      else if ((configActive == theAfterburner) && (afterburner < afterburnerMax)) {
         afterburner +=1;
+      }
+      else if (configActive == theBuzzer) {
+        buzzerActive = 1;
       }
     }
     //rotating = false;  // no more debouncing until loop() hits again
@@ -53,10 +56,33 @@ void doEncoderB(){
       if ((configActive == theCurrent) && (torqCurrent > torqCurrentMin)){
         torqCurrent -= 10;
       }
-      else if (afterburner > afterburnerMin) {
+      else if ((configActive == theAfterburner) && (afterburner > afterburnerMin)) {
         afterburner -=1;
+      }
+      else if (configActive == theBuzzer) {
+        buzzerActive = 0;
       }
     }
     //rotating = false;
+  }
+}
+
+
+void playBuzzer(playBuzzerToneEnum playThis) {
+  switch (playThis) {
+   case theOK:
+     if (buzzerActive) {tone(buzzer, 1000);} 
+     delay(50);       
+     noTone(buzzer);   
+     delay(50);
+     if (buzzerActive) {tone(buzzer, 1000);}
+     delay(50);        
+     noTone(buzzer);
+     break;
+   case theError:
+     if (buzzerActive) {tone(buzzer, 100);} 
+     delay(1000);        
+     noTone(buzzer);
+     break;
   }
 }
